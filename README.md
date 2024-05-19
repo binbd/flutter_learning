@@ -1,2 +1,3 @@
-#My first github project
-This is my first publish
+# flutter_learning
+
+A new Flutter project.
