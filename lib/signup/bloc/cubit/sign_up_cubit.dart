@@ -21,4 +21,24 @@ class SignUpCubit extends Cubit<SignUpState> {
     emit(SignUpFailedState(provider: "Google", reason: reasons[random.nextInt(reasons.length)]));
   }
 
+  void signUpNameIsEmpty()
+  {
+    emit(SignUpFailedState(provider: "Name", reason: "must not be empty"));
+  }
+
+  void signUpEmailIsEmpty()
+  {
+    emit(SignUpFailedState(provider: "Email", reason: "must not be empty"));
+  }
+
+  void signUpPasswordIsEmpty()
+  {
+    emit(SignUpFailedState(provider: "Password", reason: "must not be empty"));
+  }
+
+  void signUpSuccessful()
+  {
+    emit(SignUpSuccessState(provider: "SignUp",text: "success"));
+  }
+
 }

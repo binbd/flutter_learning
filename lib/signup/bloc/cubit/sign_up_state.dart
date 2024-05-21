@@ -12,3 +12,11 @@ final class SignUpFailedState extends SignUpState {
   SignUpFailedState({required this.provider,required this.reason});
 
 }
+
+final class SignUpSuccessState extends SignUpState {
+  final String provider;
+  final String text;
+
+  SignUpSuccessState({required this.provider,required this.text});
+
+}
