@@ -13,6 +13,24 @@ final class SignUpFailedState extends SignUpState {
 
 }
 
+final class SignUpWithGithubState extends SignUpState {
+
+}
+
+final class SignUpWithGoogleState extends SignUpState{
+
+}
+
+final class SignUpInvalidEmail extends SignUpState{
+
+}
+
+final class SignUpInvalidPassword extends SignUpState{
+
+}
+
+
+
 final class SignUpSuccessState extends SignUpState {
   final String provider;
   final String text;

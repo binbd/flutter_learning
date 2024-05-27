@@ -18,40 +18,10 @@ class MyHome extends StatelessWidget {
   }
 }
 
-class _HomeContent extends StatefulWidget {
+class _HomeContent extends StatelessWidget {
   const _HomeContent();
 
-  @override
-  State<_HomeContent> createState() => _HomeContentState();
-}
-
-class _HomeContentState extends State<_HomeContent> {
-  String textEmail="";
-  String textName = "";
-  String textPassword = "";
-
-  void setEmailTextState (String emailText)
-  {
-    setState(() {
-      textEmail = emailText;
-    });
-  }
-
-  void setNameTextState (String nameText)
-  {
-    setState(() {
-      textName = nameText;
-    });
-  }
-
-  void setPasswordState(String pwd)
-  {
-    setState(() {
-      textPassword = pwd;
-    });
-  }
-   
-
+    
   @override
   Widget build(BuildContext context) => Scaffold(
         body: SafeArea(
@@ -140,7 +110,8 @@ class _HomeContentState extends State<_HomeContent> {
                       if (kDebugMode) {
                            print('$state');
                          }
-                      if(state is SignUpFailedState && state.provider == 'Github')
+                      //if(state is SignUpFailedState && state.provider == 'Github')
+                      if(state is SignUpWithGithubState)
                       {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
@@ -149,7 +120,8 @@ class _HomeContentState extends State<_HomeContent> {
                       }
                     },
                     builder: (context, state) {
-                      if(state is SignUpFailedState && state.provider == 'Google')
+                      //if(state is SignUpFailedState && state.provider == 'Google')
+                      if(state is SignUpWithGoogleState)
                       {
                         return const Text("Google signup is not supported");
                       }
@@ -164,7 +136,8 @@ class _HomeContentState extends State<_HomeContent> {
                       imagePath: Assets.assest.images.user.path,
                       hintText: "Name",
                       onTextChange: (value) {
-                        setNameTextState(value);
+                         context.read<SignUpCubit>().name = value;
+                        //setNameTextState(value);
                       },
                       ),
                       
@@ -172,14 +145,14 @@ class _HomeContentState extends State<_HomeContent> {
                       imagePath: Assets.assest.images.email.path,
                       hintText: "Email",
                       onTextChange: (value) {
-                        setEmailTextState(value);
+                        context.read<SignUpCubit>().email = value;
                       },
                       ),
                   IconTextField(
                       imagePath: Assets.assest.images.password.path,
                       hintText: "Password",
                       onTextChange:(value) {
-                        setPasswordState(value);
+                        context.read<SignUpCubit>().password = value;
                       },),
                     BlocSelector<SignUpCubit, SignUpState, String?>(
                       selector: (state) {
@@ -203,21 +176,41 @@ class _HomeContentState extends State<_HomeContent> {
                         return const SizedBox.shrink();
                       },
                     ),
-                  TextButton(onPressed: () {
-                    if(textName.isEmpty){
-                      context.read<SignUpCubit>().signUpNameIsEmpty();
-                    }
-                    else if(textEmail.isEmpty){
-                      context.read<SignUpCubit>().signUpEmailIsEmpty();
+                    BlocConsumer<SignUpCubit, SignUpState>(
+                    listener: (context, state) {
+                      if (kDebugMode) {
+                           print('$state');
+                         }
+                      //if(state is SignUpFailedState && state.provider == 'Github')
+                      
+                    },
+                    builder: (context, state) {
+                      //if(state is SignUpFailedState && state.provider == 'Google')
+                      if(state is SignUpInvalidEmail)
+                      {
+                        return const Text("Email is invalid format",
+                            style: TextStyle(color:Colors.red),
+                          );
+                      }
 
-                    }
-                    else if(textPassword.isEmpty){
-                      context.read<SignUpCubit>().signUpPasswordIsEmpty();
-                    }
-                    else{
+                      if( state is SignUpInvalidPassword)
+                      {
+                        return const Text("Password is weak",
+                            style: TextStyle(color:Colors.yellow),
+                          );
+                      }
+                      
+                      return Container();
+                    },
+                  ),
+                  TextButton(onPressed: () {
+                    
+                    //context.read<SignUpCubit>().signUpName();
+                    //context.read<SignUpCubit>().signUpEmail();
+                    //context.read<SignUpCubit>().signUpPassword();
                       //verify email and password here
-                      context.read<SignUpCubit>().signUpSuccessful();
-                    }
+                    context.read<SignUpCubit>().signUp();
+                    
 
                   }, child: const Text("Signup")),
                   const Text("Or",
@@ -245,6 +238,7 @@ class _HomeContentState extends State<_HomeContent> {
         ),
       );
 }
+   
 
 class AccountHolder extends StatelessWidget {
   const AccountHolder({
