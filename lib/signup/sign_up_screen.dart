@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_learning/signup/bloc/cubit/sign_up_cubit.dart';
@@ -20,6 +21,7 @@ class MyHome extends StatelessWidget {
 class _HomeContent extends StatelessWidget {
   const _HomeContent();
 
+    
   @override
   Widget build(BuildContext context) => Scaffold(
         body: SafeArea(
@@ -105,16 +107,21 @@ class _HomeContent extends StatelessWidget {
                   // ),
                   BlocConsumer<SignUpCubit, SignUpState>(
                     listener: (context, state) {
-                      if(state is SignUpFailedState && state.provider == 'Github')
+                      if (kDebugMode) {
+                           print('$state');
+                         }
+                      //if(state is SignUpFailedState && state.provider == 'Github')
+                      if(state is SignUpWithGithubState)
                       {
-                               ScaffoldMessenger.of(context).showSnackBar(
-                                 const SnackBar(
-                                     content: Text("Github signup is not supported")));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text("Github signup is not supported")));
                            
                       }
                     },
                     builder: (context, state) {
-                      if(state is SignUpFailedState && state.provider == 'Google')
+                      //if(state is SignUpFailedState && state.provider == 'Google')
+                      if(state is SignUpWithGoogleState)
                       {
                         return const Text("Google signup is not supported");
                       }
@@ -127,14 +134,85 @@ class _HomeContent extends StatelessWidget {
                           TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
                   IconTextField(
                       imagePath: Assets.assest.images.user.path,
-                      hintText: "Name"),
+                      hintText: "Name",
+                      onTextChange: (value) {
+                         context.read<SignUpCubit>().name = value;
+                        //setNameTextState(value);
+                      },
+                      ),
+                      
                   IconTextField(
                       imagePath: Assets.assest.images.email.path,
-                      hintText: "Email"),
+                      hintText: "Email",
+                      onTextChange: (value) {
+                        context.read<SignUpCubit>().email = value;
+                      },
+                      ),
                   IconTextField(
                       imagePath: Assets.assest.images.password.path,
-                      hintText: "Password"),
-                  TextButton(onPressed: () {}, child: const Text("Signup")),
+                      hintText: "Password",
+                      onTextChange:(value) {
+                        context.read<SignUpCubit>().password = value;
+                      },),
+                    BlocSelector<SignUpCubit, SignUpState, String?>(
+                      selector: (state) {
+                          if (kDebugMode) {
+                           print('$state');
+                         }
+                        if(state is SignUpFailedState)
+                        {
+                          return state.provider;
+                        }
+                        return null;
+                      },
+                      builder: (context, state) {
+                        
+                        if(state == "Name" || state =="Email" || state == "Password")
+                        {
+                          return Text("$state must not be empty",
+                            style: const TextStyle(color:Colors.red),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                    BlocConsumer<SignUpCubit, SignUpState>(
+                    listener: (context, state) {
+                      if (kDebugMode) {
+                           print('$state');
+                         }
+                      //if(state is SignUpFailedState && state.provider == 'Github')
+                      
+                    },
+                    builder: (context, state) {
+                      //if(state is SignUpFailedState && state.provider == 'Google')
+                      if(state is SignUpInvalidEmail)
+                      {
+                        return const Text("Email is invalid format",
+                            style: TextStyle(color:Colors.red),
+                          );
+                      }
+
+                      if( state is SignUpInvalidPassword)
+                      {
+                        return const Text("Password is weak",
+                            style: TextStyle(color:Colors.yellow),
+                          );
+                      }
+                      
+                      return Container();
+                    },
+                  ),
+                  TextButton(onPressed: () {
+                    
+                    //context.read<SignUpCubit>().signUpName();
+                    //context.read<SignUpCubit>().signUpEmail();
+                    //context.read<SignUpCubit>().signUpPassword();
+                      //verify email and password here
+                    context.read<SignUpCubit>().signUp();
+                    
+
+                  }, child: const Text("Signup")),
                   const Text("Or",
                       style:
                           TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
@@ -145,7 +223,9 @@ class _HomeContent extends StatelessWidget {
                             fontWeight: FontWeight.w600, fontSize: 12)),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+
+                    },
                     child: const Text(
                       "Login",
                       style: TextStyle(color: Color.fromRGBO(02, 37, 68, 1)),
@@ -158,6 +238,7 @@ class _HomeContent extends StatelessWidget {
         ),
       );
 }
+   
 
 class AccountHolder extends StatelessWidget {
   const AccountHolder({
@@ -193,10 +274,18 @@ class AccountHolder extends StatelessWidget {
   }
 }
 
-class IconTextField extends StatelessWidget {
-  const IconTextField({required this.imagePath, this.hintText, super.key});
+class IconTextField extends StatefulWidget {
+  const IconTextField({required this.imagePath,required this.onTextChange,  this.hintText,super.key});
   final String imagePath;
   final String? hintText;
+  final ValueChanged<String> onTextChange;
+  @override
+  State<IconTextField> createState() => _IconTextFieldState();
+}
+
+class _IconTextFieldState extends State<IconTextField> {
+  final TextEditingController textcontroller = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -204,7 +293,7 @@ class IconTextField extends StatelessWidget {
       child: Row(
         children: [
           Image.asset(
-            imagePath,
+            widget.imagePath,
             width: 30,
             height: 30,
           ),
@@ -221,14 +310,29 @@ class IconTextField extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
             ),
             child: TextField(
+              controller: textcontroller,
               decoration: InputDecoration(
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.all(8.0),
-                  hintText: hintText),
+                  hintText: widget.hintText),
             ),
           )),
         ],
       ),
     );
+  }
+  @override
+  void dispose() {
+    textcontroller.dispose(); //must dispose otherwise memory leak for value notifier
+    super.dispose();
+  }
+  @override
+  void initState() {
+    
+    super.initState();
+
+    textcontroller.addListener(() {
+      widget.onTextChange(textcontroller.text);
+     });
   }
 }
